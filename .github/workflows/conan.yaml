@@ -12,4 +12,14 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -r requirements.txt
+      - name: Install conan
+        run: pip install -r requirements.txt
+      - name: Create a default conan dependency
+        run: conan profile detect --force
+      - name: Install conan dependencies
+        run: conan install . --output-folder=build --build=missing
+      - name: Build cmake project
+        run: |
+          cd build
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -j
