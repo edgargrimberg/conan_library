@@ -1,0 +1,26 @@
+name: Create Conan package
+
+on:
+  pull_request:
+
+jobs:
+  create_conan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install conan
+        run: pip install -r requirements.txt
+      - name: Create a default conan dependency
+        run: conan profile detect --force
+      - name: Install conan dependencies
+        run: conan install . --output-folder=build --build=missing
+      - name: Build cmake project
+        run: |
+          cd build
+          source conanbuild.sh
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -G Ninja
+          cmake --build . -j
